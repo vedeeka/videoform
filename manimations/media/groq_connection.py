@@ -12,6 +12,8 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 @app.after_request
+
+
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
@@ -45,11 +47,11 @@ def run_manim_with_retry(file_path: str, scene_name: str, max_retries: int = 3) 
 def generate_improved_prompt(original_prompt: str, error_message: str, attempt: int) -> str:
     """Generate an improved prompt for fixing broken Manim code"""
     variations = [
-        "Do  use voiceover and GTTS,",
-        
-        "Use only Circle, Square, or Text from Manim.",
-        "Ensure the Scene has a construct() method.",
-        "Avoid unnecessary imports.",
+        "Use voiceover and GTTS with proper imports",
+        "Simplify the code, avoid advanced animations",
+        "Use only Circle, Square, or Text from Manim",
+        "Ensure the Scene has a construct() method",
+        "Avoid unnecessary imports and complex features"
     ]
     tweak = random.choice(variations)
 
@@ -71,8 +73,15 @@ Generate corrected Manim code:"""
 @app.route('/generate_manim_code', methods=['POST'])
 def generate_manim_code():
     data = request.json
-    original_prompt = data.get('prompt', data)
-    max_retries = data.get('max_retries', 5)
+    
+    # Handle both string and object inputs
+    if isinstance(data, str):
+        original_prompt = f"Generate only the Python Manim code (no explanations, no theory, no extra text) that creates a long, smooth animation illustrating a {data}. Arrange all shapes and labels so that no animation or text overlaps. Use only direct Manim color constants (e.g., RED, BLUE, GREEN, YELLOW) without unnecessary keyword arguments. Include continuous and sequential animations for push and pop operations so that the video lasts at least 60 seconds, keeping the animation visible until the end. Apply multiple, engaging animation effects (like scaling, rotating, moving, and highlighting) for each component. Ensure the code is fully ready to run without crashing, must be at least 150 lines long, and must return exactly the expected number of objects to avoid unpacking errors. Do not include any explanations, comments, or text outside the code—only output the code."
+    else:
+        prompt_text = data.get('prompt', '')
+        original_prompt = f"Generate only the Python Manim code (no explanations, no theory, no extra text) that creates a long, smooth animation illustrating a {prompt_text}. Arrange all shapes and labels so that no animation or text overlaps. Use only direct Manim color constants (e.g., RED, BLUE, GREEN, YELLOW) without unnecessary keyword arguments. Include continuous and sequential animations for push and pop operations so that the video lasts at least 60 seconds, keeping the animation visible until the end. Apply multiple, engaging animation effects (like scaling, rotating, moving, and highlighting) for each component. Ensure the code is fully ready to run without crashing, must be at least 150 lines long, and must return exactly the expected number of objects to avoid unpacking errors. Do not include any explanations, comments, or text outside the code—only output the code."
+    
+    max_retries = data.get('max_retries', 10) if isinstance(data, dict) else 10
 
     file_path = "generated_manim.py"
     current_prompt = original_prompt
