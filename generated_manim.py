@@ -1,65 +1,56 @@
 from manim import *
-import os
 
-class StackAnimation(Scene):
+class QueueAnimation(Scene):
     def construct(self):
-        # Check for the audio file
-        audio_file = "narration.mp3"
-        if os.path.exists(audio_file):
-            self.add_sound(audio_file)
+        queue = VGroup()
+        queue_labels = VGroup()
+        max_items = 5
+        item_radius = 0.5
+        item_spacing = 0.5
+        item_colors = [RED, GREEN, BLUE, YELLOW, ORANGE]
 
-        # Create Stack components
-        top_label = Text("Top", color=YELLOW).shift(UP * 2)
-        bottom_label = Text("Bottom", color=YELLOW).shift(DOWN * 2)
-        stack_elements = VGroup()
-        stack_height = 3
-        num_elements = 5
-        for i in range(num_elements):
-            element = Rectangle(width=1.5, height=0.5, fill_color=BLUE, fill_opacity=0.7)
-            element_label = Text(f"Item {i + 1}", color=WHITE).scale(0.4)
-            element_group = VGroup(element, element_label).arrange(DOWN).move_to(UP * (num_elements - i - 1) * 0.5)
-            stack_elements.add(element_group)
+        for i in range(max_items):
+            circle = Circle(radius=item_radius, color=item_colors[i % len(item_colors)])
+            label = Text(str(i + 1), font_size=24)
+            label.move_to(circle.get_center())
+            circle.move_to(RIGHT * (i * (item_radius + item_spacing)))
+            queue.add(circle)
+            queue_labels.add(label)
 
-        stack_background = Rectangle(width=2, height=stack_height, color=WHITE)
-        stack_background.move_to(ORIGIN)
+        self.play(Create(queue), Write(queue_labels))
+        self.wait(1)
 
-        stack_container = VGroup(stack_background, stack_elements, top_label, bottom_label)
+        for i in range(3):
+            self.play(queue[i].animate.scale(1.5).set_color(WHITE), queue_labels[i].animate.set_color(WHITE))
+            self.wait(0.5)
+            self.play(queue[i].animate.scale(1/1.5).set_color(item_colors[i % len(item_colors)]), queue_labels[i].animate.set_color(WHITE))
+            self.wait(0.5)
 
-        self.play(DrawBorderThenFill(stack_background), run_time=2)
-        self.play(FadeIn(stack_elements), run_time=2)
-        self.play(FadeIn(top_label), FadeIn(bottom_label), run_time=2)
+        for i in range(max_items):
+            self.play(Indicate(queue[i]))
+            self.wait(0.5)
 
-        # Push operation
-        for i in range(num_elements):
-            self.push_operation(i)
+        for i in range(2):
+            moving_circle = Circle(radius=item_radius, color=RED)
+            moving_label = Text('PUSH', font_size=24).next_to(moving_circle, UP)
+            self.play(Create(moving_circle), Write(moving_label))
+            moving_circle.move_to(RIGHT * (max_items * (item_radius + item_spacing)))
+            self.play(moving_circle.animate.shift(LEFT * (max_items * (item_radius + item_spacing) - item_spacing)), run_time=1)
+            queue.add(moving_circle)
+            queue_labels.add(moving_label)
+            self.wait(0.5)
 
-        # Pause for visibility
-        self.wait(2)
+            if len(queue) > max_items:
+                to_remove = queue[0]
+                label_to_remove = queue_labels[0]
+                self.play(FadeOut(to_remove), FadeOut(label_to_remove))
+                queue.remove(to_remove)
+                queue_labels.remove(label_to_remove)
 
-        # Pop operation
-        for i in range(num_elements):
-            self.pop_operation(num_elements - 1 - i)
+            self.wait(0.5)
 
-        self.wait(2)
+        self.play(queue.animate.move_to(ORIGIN), queue_labels.animate.move_to(ORIGIN), run_time=2)
+        self.wait(1)
 
-    def push_operation(self, index):
-        item = Rectangle(width=1.5, height=0.5, fill_color=GREEN, fill_opacity=0.7)
-        item_label = Text(f"Item {index + 1}", color=WHITE).scale(0.4)
-        item_group = VGroup(item, item_label).arrange(DOWN).move_to(UP * (-1 * index - 0.5))
-
-        self.play(item_group.animate.move_to(UP * (0.5 * (index + 1))).scale(0.5),
-                  Create(item), run_time=1)
-        self.play(FadeIn(item_label), run_time=1)
-        self.play(Indicate(item), run_time=1)
-        self.play(item_group.animate.scale(2).move_to(UP * (0.5 * (index) + 1)), run_time=1)
-
-    def pop_operation(self, index):
-        item_to_pop = self.get_item_group(index)
-        self.play(FadeOut(item_to_pop[1]), run_time=1)
-        self.play(item_to_pop.animate.scale(0.5).move_to(DOWN * (index + 1)), run_time=1)
-
-    def get_item_group(self, index):
-        return self.mobjects[-(index + 1) - 2:]
-
-    def on_overlap(self):
-        self.add_sound("overlap_audio.mp3")
+        self.play(*[FadeOut(m) for m in queue], *[FadeOut(l) for l in queue_labels])
+        self.wait(1)
