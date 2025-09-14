@@ -21,7 +21,7 @@ def add_cors_headers(response):
     return response
 
 # OpenAI client
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "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"  # fallback for dev
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "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"
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 def extract_scene_name(code: str) -> str:
@@ -115,12 +115,12 @@ def generate_manim_code():
                 manim_code = manim_code.split("```")[1].replace("python", "").strip()
             audio_snippet = (
                 
-                "     audio_url = 'https://murf.ai/user-upload/one-day-temp/6f560957-b7f4-4d0f-b149-eea0687d60ff.wav'\n"
-                "     audio_file = 'temp_audio.mp3'\n"
-                "     r = requests.get(audio_url)\n"
-                "     with open(audio_file, 'wb') as f:\n"
-                "     f.write(r.content)\n"
-                "     self.add_sound(audio_file)\n"
+                "    audio_url = 'https://murf.ai/user-upload/one-day-temp/6f560957-b7f4-4d0f-b149-eea0687d60ff.wav'\n"
+                "    audio_file = 'temp_audio.mp3'\n"
+                "    r = requests.get(audio_url)\n"
+                "    with open(audio_file, 'wb') as f:\n"
+                "    f.write(r.content)\n"
+                "    self.add_sound(audio_file)\n"
 )
             import_snippet = (
                 "import requests\n"
