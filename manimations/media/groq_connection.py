@@ -21,7 +21,7 @@ def add_cors_headers(response):
     return response
 
 # OpenAI client
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "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"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "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"
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 def extract_scene_name(code: str) -> str:
